@@ -1,9 +1,117 @@
-<h1>JavaScript Objectball</h1>
-<p>
-  Open your Chrome dev tools to see console output and trigger the debugger to
-  catch.
-</p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JavaScript Objectball</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin: 24px;
+      line-height: 1.4;
+      color: #111;
+    }
+    header { margin-bottom: 12px; }
+    pre#output {
+      background: #f6f8fa;
+      border: 1px solid #e1e4e8;
+      padding: 12px;
+      white-space: pre-wrap;
+      max-height: 60vh;
+      overflow: auto;
+    }
+    .hint { color: #444; font-size: 0.95rem; margin-bottom: 8px; }
+    button { margin-top: 8px; padding: 8px 12px; border-radius: 6px; border: 1px solid #999; background: #fff; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JavaScript Objectball</h1>
+    <p class="hint">Open Chrome DevTools (F12) and refresh this page to debug with <code>debugger;</code> or breakpoints.</p>
+  </header>
 
-<script src="./src/00-objectball.js"></script>
-<script src="./src/01-simple-debug.js"></script>
-<!-- <script src="./src/02-advanced-debug.js"></script> -->
+  <section>
+    <p>Console + visual output are below. If nothing appears, make sure <code>src/00-objectball.js</code> exists and exports the functions used by this page (gameObject, numPointsScored, shoeSize, etc.).</p>
+    <button id="run-tests">Run tests (logs)</button>
+    <pre id="output">Loading... (click "Run tests" if nothing else appears)</pre>
+  </section>
+
+  <!-- Load your lab file -->
+  <script src="./src/00-objectball.js"></script>
+
+  <!-- Inline helper script to call functions and show results -->
+  <script>
+    function append(msg) {
+      console.log(msg);
+      const out = document.getElementById('output');
+      out.textContent = out.textContent.replace(/^Loading\.\.\.\s*/, '') + msg + '\n';
+    }
+
+    function safeCall(fn, ...args) {
+      try {
+        const result = fn(...args);
+        return result;
+      } catch (err) {
+        return { __error: true, message: err && err.message ? err.message : String(err) };
+      }
+    }
+
+    function runAllTests() {
+      const outLines = [];
+      // gameObject
+      const g = safeCall(gameObject);
+      append('gameObject() =>');
+      append(typeof g === 'object' ? JSON.stringify(g, null, 2) : String(g));
+
+      // Basic checks
+      const tests = [
+        { name: 'numPointsScored("Ben Gordon")', fn: () => numPointsScored("Ben Gordon") },
+        { name: 'shoeSize("Mason Plumlee")', fn: () => shoeSize("Mason Plumlee") },
+        { name: 'teamColors("Brooklyn Nets")', fn: () => teamColors("Brooklyn Nets") },
+        { name: 'teamNames()', fn: () => teamNames() },
+        { name: 'playerNumbers("Charlotte Hornets")', fn: () => playerNumbers("Charlotte Hornets") },
+        { name: 'playerStats("Alan Anderson")', fn: () => playerStats("Alan Anderson") },
+        { name: 'bigShoeRebounds()', fn: () => bigShoeRebounds() },
+        { name: 'mostPointsScored()', fn: () => (typeof mostPointsScored === "function" ? mostPointsScored() : "not defined") },
+        { name: 'winningTeam()', fn: () => (typeof winningTeam === "function" ? winningTeam() : "not defined") },
+        { name: 'playerWithLongestName()', fn: () => (typeof playerWithLongestName === "function" ? playerWithLongestName() : "not defined") },
+        { name: 'doesLongNameStealATon()', fn: () => (typeof doesLongNameStealATon === "function" ? doesLongNameStealATon() : "not defined") }
+      ];
+
+      for (const t of tests) {
+        const res = safeCall(t.fn);
+        if (res && res.__error) {
+          append(`${t.name} => Error: ${res.message}`);
+        } else if (typeof res === 'object') {
+          append(`${t.name} => ${JSON.stringify(res, null, 2)}`);
+        } else {
+          append(`${t.name} => ${String(res)}`);
+        }
+      }
+    }
+
+    document.getElementById('run-tests').addEventListener('click', () => {
+      // clear previous content except the header
+      document.getElementById('output').textContent = '';
+      runAllTests();
+    });
+
+    // auto-run on load (if functions exist)
+    window.addEventListener('DOMContentLoaded', () => {
+      // delay briefly to ensure user's script loaded
+      setTimeout(() => {
+        try {
+          if (typeof gameObject === 'function') {
+            document.getElementById('output').textContent = '';
+            runAllTests();
+          } else {
+            append('Error: gameObject() not found. Make sure src/00-objectball.js is in the correct path and defines gameObject().');
+          }
+        } catch (e) {
+          append('Error while running tests: ' + e.message);
+        }
+      }, 50);
+    });
+  </script>
+</body>
+</html>
